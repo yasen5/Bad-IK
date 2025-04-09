@@ -11,15 +11,22 @@ public class ArmHandler {
     private int startX = 300;
     private int startY = 550;
     private int rectWidth = 15;
-    private double[] armMotorSpeeds = { Math.PI / 6, Math.PI / 6 };
-    private double thetaTolerance = Math.PI / 6 * 0.11;
+    private double[] armMotorSpeeds = { Math.PI / 3, Math.PI / 3 };
+    private double thetaTolerance = Math.PI / 6 * 0.05;
+    private PIDController[] pidControllers = new PIDController[2];
+    private double dtSeconds = 0.02;
+    private int iterations = 0;
 
     public ArmHandler() {
         // runIK(targetPos[0], targetPos[1]);
         thetas[0] = 0;
         thetas[1] = 0;
         goalThetas[0] = Math.PI * 2 / 3;
-        goalThetas[1] = Math.PI * 2 / 3;
+        goalThetas[1] = 0;
+        for (int i = 0; i < pidControllers.length; i++) {
+            pidControllers[i] = new PIDController(5, 0, 0, armMotorSpeeds[i], dtSeconds);
+            pidControllers[i].reset(goalThetas[i], 0, thetas[i]);
+        }
     }
 
     public void drawArms(Graphics g) {
@@ -29,11 +36,12 @@ public class ArmHandler {
         int rightXAdjustment = (int) (midwayThroughRect * (1 + Math.cos(Math.PI / 2 - thetas[0])));
         int y1 = startY - (int) (armOneLength * Math.sin(Math.PI - thetas[0]));
         int yAdjustment = (int) (midwayThroughRect * Math.sin(Math.PI / 2 - thetas[0]));
-        int x2 = x1 + (int) (armTwoLength * Math.cos(thetas[1]));
-        int topLeftXAdjustment = (int) (midwayThroughRect * (1 - Math.cos(Math.PI / 2 - thetas[1])));
-        int topRightXAdjustment = (int) (midwayThroughRect * (1 + Math.cos(Math.PI / 2 - thetas[1])));
-        int y2 = y1 - (int) (armTwoLength * Math.sin(thetas[1]));
-        int topYAdjustment = (int) (midwayThroughRect * Math.sin(Math.PI / 2 - thetas[1]));
+        double q2WithPrevious = thetas[1] + thetas[0];
+        int x2 = x1 + (int) (armTwoLength * Math.cos(q2WithPrevious));
+        int topLeftXAdjustment = (int) (midwayThroughRect * (1 - Math.cos(Math.PI / 2 - q2WithPrevious)));
+        int topRightXAdjustment = (int) (midwayThroughRect * (1 + Math.cos(Math.PI / 2 - q2WithPrevious)));
+        int y2 = y1 - (int) (armTwoLength * Math.sin(q2WithPrevious));
+        int topYAdjustment = (int) (midwayThroughRect * Math.sin(Math.PI / 2 - q2WithPrevious));
         g.setColor(black);
         g.fillPolygon(
                 new int[] { startX + leftXAdjustment, startX + rightXAdjustment, x1 + rightXAdjustment,
@@ -51,23 +59,27 @@ public class ArmHandler {
         ik.ik(mouseX - startX, startY - mouseY, armOneLength, armTwoLength, goalThetas);
     }
 
-    public void updateThetas(double dt) {
+    public void updateThetas() {
         for (int i = 0; i < thetas.length; i++) {
-            double trueGoalTheta = goalThetas[i];
-            for (int j = 0; j < i; j++) {
-                trueGoalTheta -= goalThetas[j];
-            }
-            double trueTheta = thetas[i];
-            for (int j = 0; j < i; j++) {
-                trueTheta -= thetas[j];
-            }
-            if (Math.abs(trueGoalTheta - trueTheta) > thetaTolerance) {
-                thetas[i] += (trueTheta < trueGoalTheta ? 1 : -1) * armMotorSpeeds[i] * dt;
+            if (Math.abs(goalThetas[i] - thetas[i]) > thetaTolerance) {
+                thetas[i] += (thetas[i] < goalThetas[i] ? 1 : -1) * armMotorSpeeds[i] * dtSeconds;
             }
         }
     }
 
-    public double getThetaOne() {
-        return thetas[0];
+    public void updateThetasUsingPID() {
+        iterations++;
+        for (int i = 0; i < thetas.length - 1; i++) {
+            // System.out.println("Calculate output " +
+            // pidControllers[i].calculate(thetas[i], iterations * dtSeconds));
+            if (Math.abs(goalThetas[i] - thetas[i]) > thetaTolerance) {
+                thetas[i] += pidControllers[i].calculate(thetas[i], iterations * dtSeconds) * dtSeconds;
+            }
+        }
+    }
+
+    private double normalizeAngle(double angle) {
+        angle = angle % (2 * Math.PI);
+        return Math.abs(angle) < Math.PI ? angle : angle + (angle < 0 ? 2 * Math.PI : -2 * Math.PI);
     }
 }

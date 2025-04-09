@@ -10,11 +10,11 @@ import java.awt.Color;
 
 public class Screen extends JPanel implements MouseListener {
     ArmHandler handler = new ArmHandler();
-    int dtInMilliseconds = 100;
+    int dtInMilliseconds = 20;
     ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     Runnable animate = new Runnable() {
         public void run() {
-            handler.updateThetas(dtInMilliseconds / 1000.0);
+            handler.updateThetasUsingPID();
             repaint();
         }
     };

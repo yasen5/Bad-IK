@@ -16,7 +16,7 @@ public class InverseKinematics {
             targetTheta += Math.PI;
         }
         if (tX < 0) {
-            targetTheta += Math.PI;
+            targetTheta -= Math.PI;
         }
         double d = tX * tX + tY * tY;
         double intermediary = (d - armOneLength * armOneLength - armTwoLength * armTwoLength)
@@ -29,6 +29,6 @@ public class InverseKinematics {
         double q1 = targetTheta
                 - beta;
         thetas[0] = q1;
-        thetas[1] = q1 + q2;
+        thetas[1] = q2;
     }
 }
