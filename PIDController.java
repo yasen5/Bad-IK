@@ -2,7 +2,7 @@ public class PIDController {
     private double kP, kI, kD;
     private double goalPos;
     private double kMaxSpeed;
-    private double startPosition, startVelocity;
+    private double startPosition;
     private double acceptablePositionError = 0.005; // E_max
     private double previousPosition, previousVelocity, previousAcceleration;
     private double dt;
@@ -19,9 +19,9 @@ public class PIDController {
         previousAcceleration = 0;
     }
 
-    public void reset(double goalPos, double startVelocity, double startPosition) {
+    public void reset(double goalPos, double startPosition) {
         this.goalPos = goalPos;
-        this.startVelocity = startVelocity;
+        System.out.println("GoalPos: " + goalPos);
         this.startPosition = startPosition;
         computeSCurve();
     }
@@ -34,13 +34,20 @@ public class PIDController {
         previousPosition = measurement;
         previousVelocity = currentVelocity;
         // return getTargetPositionFromProfile(time);
+        // System.out.println("Goaltheta: " + goalPos + "\tcurrentTheta: " + measurement);
         return kP * posError + kD * velocityError;
     }
 
     private void computeSCurve() {
-        lambda = acceptablePositionError / (goalPos - startVelocity);
-        b = 4 * Math.abs(kMaxSpeed / (goalPos - startVelocity));
+        lambda = Math.abs(acceptablePositionError / (goalPos - startPosition));
+        b = 4 * Math.abs(kMaxSpeed / (goalPos - startPosition));
         c = Math.log((1 - lambda) / lambda) / b;
+        if (goalPos - startPosition == 0) {
+            lambda = 0;
+            b = 0;
+            c = 0;
+        }
+        // System.out.println("Lambda: " + lambda + "\tb:" + b + "\tc:" + c);
     }
 
     private double getTargetPositionFromProfile(double time) {

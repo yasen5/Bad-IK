@@ -16,16 +16,16 @@ public class ArmHandler {
     private PIDController[] pidControllers = new PIDController[2];
     private double dtSeconds = 0.02;
     private int iterations = 0;
+    private double[] motorVelocities = new double[2];
 
     public ArmHandler() {
-        // runIK(targetPos[0], targetPos[1]);
         thetas[0] = 0;
         thetas[1] = 0;
         goalThetas[0] = Math.PI * 2 / 3;
         goalThetas[1] = 0;
         for (int i = 0; i < pidControllers.length; i++) {
             pidControllers[i] = new PIDController(5, 0, 0, armMotorSpeeds[i], dtSeconds);
-            pidControllers[i].reset(goalThetas[i], 0, thetas[i]);
+            pidControllers[i].reset(goalThetas[i], thetas[i]);
         }
     }
 
@@ -57,29 +57,28 @@ public class ArmHandler {
 
     public void runIK(int mouseX, int mouseY) {
         ik.ik(mouseX - startX, startY - mouseY, armOneLength, armTwoLength, goalThetas);
+        for (int i = 0; i < pidControllers.length; i++) {
+            pidControllers[i].reset(goalThetas[i], thetas[i]);
+        }
     }
 
     public void updateThetas() {
         for (int i = 0; i < thetas.length; i++) {
             if (Math.abs(goalThetas[i] - thetas[i]) > thetaTolerance) {
-                thetas[i] += (thetas[i] < goalThetas[i] ? 1 : -1) * armMotorSpeeds[i] * dtSeconds;
+                motorVelocities[i] = (thetas[i] < goalThetas[i] ? 1 : -1) * armMotorSpeeds[i] * dtSeconds;
+                thetas[i] += motorVelocities[i];
             }
         }
     }
 
     public void updateThetasUsingPID() {
         iterations++;
-        for (int i = 0; i < thetas.length - 1; i++) {
-            // System.out.println("Calculate output " +
-            // pidControllers[i].calculate(thetas[i], iterations * dtSeconds));
+        for (int i = 0; i < thetas.length; i++) {
             if (Math.abs(goalThetas[i] - thetas[i]) > thetaTolerance) {
-                thetas[i] += pidControllers[i].calculate(thetas[i], iterations * dtSeconds) * dtSeconds;
+                motorVelocities[i] = pidControllers[i].calculate(thetas[i], iterations * dtSeconds) * dtSeconds;
+                thetas[i] += motorVelocities[i];
             }
         }
-    }
-
-    private double normalizeAngle(double angle) {
-        angle = angle % (2 * Math.PI);
-        return Math.abs(angle) < Math.PI ? angle : angle + (angle < 0 ? 2 * Math.PI : -2 * Math.PI);
+        // System.out.println("theta1: " + thetas[0] + "\ttheta2: " + thetas[1]);
     }
 }
