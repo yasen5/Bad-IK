@@ -10,7 +10,6 @@ public class PIDController {
   private double dt;
   private double lambda, b, c;
   private boolean usingNegativeRoute = true;
-  boolean debug;
   private Function<Double, Double> normalizer = AngleMath::normalizeAngle;
 
   public PIDController(double kP, double kI, double kD, double maxSpeed, double dt) {
@@ -25,15 +24,8 @@ public class PIDController {
   }
 
   public void reset(double goalPos, double startPosition) {
-    if (debug) {
-      System.out.println("Resetting");
-    }
     usingNegativeRoute = !AngleMath.positiveIsShortestPath(startPosition, goalPos);
     int startingQuadrant = AngleMath.quadrant(startPosition);
-    if (debug) {
-      System.out.println("StartingPosition:" + startPosition + "\tStartingQuadrant: " + startingQuadrant
-          + "\tUsingNegativeRoute: " + usingNegativeRoute);
-    }
     normalizer = AngleMath::normalizeAngle;
     if (usingNegativeRoute) {
       if (startingQuadrant == 1 || startingQuadrant == 2) {
@@ -73,23 +65,10 @@ public class PIDController {
 
   private double getTargetPositionFromProfile(double time) {
     double targetPosition = startPosition + (goalPos - startPosition) / (1 + Math.exp(-b * (time - c)));
-    // if (debug) {
-    // System.out.println("StartPosition:" + String.format("%.3f", startPosition) +
-    // "\tGoalPos:"
-    // + String.format("%.3f", goalPos) + "\ttime:" + String.format("%.3f", time)
-    // + "\tTarget position: " + String.format("%.3f", targetPosition) + "\tNegative
-    // path: " + usingNegativeRoute);
-    // }
     return targetPosition;
   }
 
   private double getTargetVelocityFromProfile(double time) {
     return (goalPos - startPosition) * b * Math.pow(Math.E, -b * (time - c)) / (1 + Math.exp(-b * (time - c)));
-  }
-
-  public void printPosInfo() {
-    // System.out
-    // .println("StartPos" + startPosition + " GoalPos: " + goalPos + " using
-    // negative route: " + usingNegativeRoute);
   }
 }

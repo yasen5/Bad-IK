@@ -6,24 +6,6 @@ public class AngleMath {
     return Math.abs(angle) < Math.PI ? angle : angle + (angle < 0 ? 2 * Math.PI : -2 * Math.PI);
   }
 
-  // public static double normalizeAngleZeroToTwoPI(double angle) {
-  // angle = angle % (2 * Math.PI);
-  // if (angle < 0) {
-  // angle = 2 * Math.PI + angle;
-  // }
-  // return angle;
-  // }
-
-  // public static double normalizeAngle(double angle, double lowerBound, double
-  // upperBound) {
-  // double fullDistance = upperBound - lowerBound;
-  // angle = angle % (fullDistance/2);
-  // if (angle < 0) {
-  // angle = fullDistance + angle;
-  // }
-  // return angle;
-  // }
-
   public static double normalizeAngle(double angle) {
     if (debug)
       System.out.println("Starting angle: " + angle);
@@ -38,15 +20,6 @@ public class AngleMath {
     return angle;
   }
 
-  // public static boolean positiveIsShortestPath(double angle1, double angle2) {
-  // if (angle2 > angle1) {
-  // return angle2 - angle1 <= Math.PI;
-  // } else {
-  // return 2 * Math.PI - (angle1 - angle2) <= Math.PI;
-  // }
-  // }
-
-  // New
   public static boolean positiveIsShortestPath(double angle1, double angle2) {
     double difference = angle2 - angle1;
     return difference > 0 ? difference <= Math.PI : difference < -Math.PI;

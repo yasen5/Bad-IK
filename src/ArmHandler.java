@@ -60,9 +60,6 @@ public class ArmHandler {
     ik.ik(mouseX - startX, startY - mouseY, armOneLength, armTwoLength, goalThetas);
     for (int i = 0; i < pidControllers.length; i++) {
       pidControllers[i].reset(goalThetas[i], thetas[i]);
-      if (i == 0) {
-        pidControllers[0].printPosInfo();
-      }
     }
   }
 
@@ -82,14 +79,8 @@ public class ArmHandler {
         motorVelocities[i] = pidControllers[i].calculate(thetas[i],
             iterations * dtSeconds)
             * dtSeconds;
-        if (i == 0 && motorVelocities[0] < 0) {
-          // System.out.println("Negative velocity");
-          pidControllers[0].printPosInfo();
-        }
-
         thetas[i] += motorVelocities[i];
       }
     }
-    // System.out.println("theta1: " + thetas[0] + "\ttheta2: " + thetas[1]);
   }
 }
