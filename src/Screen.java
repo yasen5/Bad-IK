@@ -9,7 +9,6 @@ import java.awt.Dimension;
 import java.awt.Color;
 
 public class Screen extends JPanel implements MouseListener {
-  private int debugCounter = 0;
   ArmHandler handler = new ArmHandler();
   int dtInMilliseconds = 20;
   ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
@@ -47,11 +46,6 @@ public class Screen extends JPanel implements MouseListener {
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    System.out.println("\n\n\n");
-    debugCounter++;
-    if (debugCounter == 2) {
-      handler.pidControllers[0].debug = true;
-    }
     handler.runIK(e.getX(), e.getY());
   }
 
