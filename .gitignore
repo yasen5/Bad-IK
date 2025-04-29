@@ -1,1 +1,7 @@
 *.class
+*.settings
+.DS_Store
+.gradle/
+.project
+.classpath
+build/
